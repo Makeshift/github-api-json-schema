@@ -1,0 +1,43 @@
+name: Generate & Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 2'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      
+      - uses: oven-sh/setup-bun@v2
+      
+      - run: bun install
+      
+      - run: bun run ./generate.ts
+      
+      - uses: gacts/directory-listing@v1
+        with:
+          target: './schemas'
+      
+      - name: Setup Pages
+        if: success()
+        uses: actions/configure-pages@v6.0.0
+        
+      - name: Upload artifact
+        if: success()
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: 'schemas'
+          
+      - name: Deploy to GitHub Pages
+        if: success()
+        uses: actions/deploy-pages@v5
