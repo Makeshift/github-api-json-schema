@@ -1,0 +1,201 @@
+# yaml-language-server: $schema=https://json-schema.org/draft/2020-12/schema
+$schema: https://json-schema.org/draft/2020-12/schema
+type: object
+additionalProperties: false
+$defs:
+  team-permission:
+    type: string
+    enum:
+      - pull
+      - push
+      - admin
+      - maintain
+      - triage
+  environment-reviewer:
+    type: object
+    additionalProperties: false
+    required:
+      - id
+      - type
+    properties:
+      id:
+        type: integer
+      type:
+        type: string
+        enum:
+          - User
+          - Team
+  deployment-branch-policy-rule:
+    oneOf:
+      - type: string
+      - type: object
+        additionalProperties: false
+        required:
+          - name
+        properties:
+          name:
+            type: string
+          type:
+            type: string
+            enum:
+              - branch
+              - tag
+  environment-deployment-branch-policy:
+    oneOf:
+      - type: 'null'
+      - type: object
+        additionalProperties: false
+        required:
+          - protected_branches
+        properties:
+          protected_branches:
+            type: boolean
+      - type: object
+        additionalProperties: false
+        required:
+          - custom_branches
+        properties:
+          custom_branches:
+            type: array
+            items:
+              $ref: '#/$defs/deployment-branch-policy-rule'
+properties:
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/docs/plugins/branches.md
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/lib/plugins/branches.js
+  branches:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        protection:
+          oneOf:
+            - type: 'null'
+            - type: object
+              additionalProperties: false
+              maxProperties: 0
+            - $ref: './schemas/latest/repos/update-branch-protection.json'
+
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/docs/plugins/collaborators.md
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/lib/plugins/collaborators.js
+  collaborators:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - username
+        - permission
+      properties:
+        username:
+          type: string
+        permission:
+          type: string
+
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/docs/plugins/environments.md
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/lib/plugins/environments.js
+  environments:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        wait_timer:
+          type: integer
+          minimum: 0
+          maximum: 43200
+        reviewers:
+          type:
+            - array
+            - 'null'
+          maxItems: 6
+          items:
+            $ref: '#/$defs/environment-reviewer'
+        deployment_branch_policy:
+          $ref: '#/$defs/environment-deployment-branch-policy'
+
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/docs/plugins/labels.md
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/lib/plugins/labels.js
+  labels:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        new_name:
+          type: string
+        color:
+          type:
+            - string
+            - integer
+        description:
+          type: string
+
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/docs/plugins/milestones.md
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/lib/plugins/milestones.js
+  milestones:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        state:
+          type: string
+          enum:
+            - open
+            - closed
+
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/docs/plugins/repository.md
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/lib/plugins/repository.js
+  repository:
+    allOf:
+      - $ref: './schemas/latest/repos/update.json'
+      - type: object
+        properties:
+          topics:
+            type: string
+          enable_vulnerability_alerts:
+            type: boolean
+          enable_automated_security_fixes:
+            type: boolean
+
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/docs/plugins/rulesets.md
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/lib/plugins/rulesets.js
+  rulesets:
+    type: array
+    items:
+      $ref: './schemas/latest/repos/create-repo-ruleset.json'
+
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/docs/plugins/teams.md
+  # https://github.com/repository-settings/app/blob/0566cc55eeef7d61c1d4c6472410da6cda5ee437/lib/plugins/teams.js
+  teams:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - permission
+      properties:
+        name:
+          type: string
+        permission:
+          $ref: '#/$defs/team-permission'

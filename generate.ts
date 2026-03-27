@@ -2,6 +2,8 @@ import SwaggerParser from '@apidevtools/swagger-parser'
 import { openapiSchemaToJsonSchema } from '@openapi-contrib/openapi-schema-to-json-schema'
 import { OpenAPIV3 } from 'openapi-types'
 import { Octokit } from 'octokit'
+import migrate from 'json-schema-migrate'
+import JsonRefParser from '@apidevtools/json-schema-ref-parser'
 
 const octokit = new Octokit()
 const files = await octokit.rest.repos.getContent({
@@ -61,6 +63,8 @@ for (const version of versions) {
       const requestType = requestBody.content['application/json']?.schema
       if (requestType) {
         const asJsonSchema = openapiSchemaToJsonSchema(requestType)
+        // This mutates the schema in-place
+        migrate.draft2020(asJsonSchema)
         waits.push(Bun.write(`./schemas/${versionName}/${operation.operationId}.json`, JSON.stringify(asJsonSchema, null, 2)))
       }
     }
@@ -68,3 +72,7 @@ for (const version of versions) {
 
   await Promise.all(waits)
 }
+
+// Deref the repository settings schema
+const settingsSchema = await JsonRefParser.dereference('./repository-settings.schema.yaml')
+await Bun.write('./schemas/repository-settings.json', JSON.stringify(settingsSchema, null, 2))
