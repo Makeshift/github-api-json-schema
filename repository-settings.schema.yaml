@@ -199,3 +199,7 @@ properties:
           type: string
         permission:
           $ref: '#/$defs/team-permission'
+
+  _extends:
+    type: string
+

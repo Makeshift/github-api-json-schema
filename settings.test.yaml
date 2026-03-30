@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=./repository-settings.schema.yaml
+# yaml-language-server: $schema=https://makeshift.github.io/github-api-json-schema/repository-settings.json
 
 branches:
   - name: master
