@@ -1,4 +1,5 @@
-name: Github Action with a cronjob trigger
+name: Keepalive Actions
+description: Periodically runs to keep other workflows from being automatically disabled
 on:
   schedule:
     - cron: '0 0 * * *'
